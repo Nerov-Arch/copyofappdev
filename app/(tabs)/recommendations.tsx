@@ -179,6 +179,12 @@ export default function RecommendationsScreen() {
                 activity per week, plus 2-3 days of resistance training for
                 optimal health and fitness.
               </Text>
+              <Text style={styles.disclaimerText}>
+                This plan is designed based on guidelines from the American
+                College of Sports Medicine and recommendations advised by
+                medical professionals. Consult with your healthcare provider
+                before starting any new exercise program.
+              </Text>
             </View>
 
             {workouts.map((workout) => (
@@ -439,6 +445,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#1e3a8a',
     lineHeight: 18,
+  },
+  disclaimerText: {
+    fontSize: 11,
+    color: '#1e3a8a',
+    lineHeight: 16,
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#93c5fd',
+    fontStyle: 'italic',
   },
   workoutCard: {
     backgroundColor: '#ffffff',

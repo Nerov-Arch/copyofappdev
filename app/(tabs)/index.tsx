@@ -96,10 +96,13 @@ export default function DashboardScreen() {
 
   const handleSignOut = async () => {
     try {
+      console.log('Sign out initiated');
       await signOut();
+      console.log('Sign out completed, redirecting to auth');
       router.replace('/');
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      console.error('Sign out error:', error);
+      Alert.alert('Error', error.message || 'Failed to sign out');
     }
   };
 
