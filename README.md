@@ -1,293 +1,130 @@
-# Fitness App
+## Fitness App — Code Map & File Guide
 
-A comprehensive, research-based mobile fitness application that generates personalized workout routines, nutrition plans, and daily tasks based on your fitness goals and medical conditions.
+This README documents the codebase layout and explains the purpose of the main files, where to find each feature, and how the parts interact. Use this as a developer reference when navigating and modifying the project.
 
-## Features
+Quick start
 
-### Core Functionality
-
-#### 1. Personalized Fitness Plans
-- Automatically generates workout routines based on your goals
-- Adapts exercises for medical conditions (asthma, diabetes, etc.)
-- Multiple exercise location support (gym, home, outdoors)
-- Research-based approach following ACSM guidelines
-
-#### 2. Nutrition & Diet Planning
-- Personalized meal plans with macro tracking
-- Meal timing recommendations
-- Protein calculations for muscle gain (1.6-2.2g/kg body weight)
-- Calorie targets for weight loss (500 cal deficit)
-
-#### 3. Daily Task Management
-- Interactive checklist for workouts, meals, and habits
-- Progress tracking with completion percentages
-- Hydration and sleep reminders
-- Task completion history
-
-#### 4. Progress Tracking
-- Weight logging and visualization
-- Interactive weight progress graph
-- Weight change statistics
-- Task completion analytics
-- Goal tracking and milestones
-
-#### 5. Sleep Optimization
-- Personalized sleep schedules
-- Target sleep hours based on goals
-- Bedtime and wake time recommendations
-
-## App Structure
-
-### Screens
-
-#### Authentication (index.tsx)
-- Sign up and sign in functionality
-- Email/password authentication via Supabase
-- Clean, mobile-first design
-
-#### Onboarding (onboarding.tsx)
-- 4-step setup wizard
-- Collects user information (age, height, weight, target)
-- Fitness goal selection (weight loss, muscle gain, both)
-- Medical condition selection
-- Multiple exercise location selection
-- Automatically generates personalized plans
-
-#### Dashboard (tabs/index.tsx)
-- Today's tasks and checklists
-- Progress overview
-- Task completion tracking
-- Quick stats display
-
-#### Plans (tabs/recommendations.tsx)
-- Workout plans with detailed instructions
-- Nutrition plans with macros and meal timing
-- Sleep schedule recommendations
-- Research citations and information
-
-#### Progress (tabs/progress.tsx)
-- Weight tracking with graph visualization
-- Add new weight entries
-- View weight history
-- Task completion statistics
-
-## Research Foundation
-
-All fitness recommendations are based on peer-reviewed research:
-
-### Exercise Guidelines
-- **ACSM**: 150-300 minutes moderate aerobic activity weekly
-- **Resistance Training**: 2-3 days per week, major muscle groups
-- **Progressive Overload**: Gradual increases in training volume
-
-### Nutrition Science
-- **ISSN**: 1.6-2.2g protein/kg body weight for muscle gain
-- **CDC**: 500 calorie deficit for safe weight loss (0.5-1kg/week)
-- **Macronutrient Distribution**: Evidence-based ratios
-
-### Medical Adaptations
-- **Asthma**: Modified intensity, extended warm-ups, breathing focus
-- Safe exercise protocols for various conditions
-- Appropriate rest periods and intensity adjustments
-
-See `RESEARCH_CITATIONS.md` for complete scientific references.
-
-## Technical Stack
-
-### Frontend
-- **Framework**: React Native with Expo
-- **Navigation**: Expo Router with tab-based navigation
-- **UI Components**: Custom components with React Native
-- **Icons**: Lucide React Native
-
-### Backend
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Real-time Data**: Supabase real-time subscriptions
-
-### Data Models
-
-#### Database Tables
-- `user_profiles` - User basic information and physical stats
-- `user_goals` - Fitness goals (weight loss, muscle gain, both)
-- `user_medical_conditions` - Health conditions affecting workouts
-- `user_exercise_locations` - Preferred workout locations
-- `workout_plans` - Generated workout routines
-- `diet_plans` - Meal plans with nutritional information
-- `daily_tasks` - Daily checklist items
-- `weight_logs` - Weight tracking history
-- `sleep_schedules` - Sleep recommendations
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+ and npm
-- Expo CLI
-- Supabase account (already configured)
-
-### Installation
-
-1. Install dependencies:
 ```bash
 npm install
-```
-
-2. Start the development server:
-```bash
 npm run dev
 ```
 
-3. Open the app in Expo Go or your preferred simulator
+The app runs in Expo; open the web URL shown by the dev server or scan the QR code with Expo Go.
 
-### Environment Variables
+Project root overview
+- `app/` — All route and screen code (Expo Router). Each top-level file maps to a route in the app.
+- `lib/` — App utilities and services (Supabase client and fitness engine).
+- `contexts/` — React Context providers (authentication state).
+- `assets/` — Images and static assets.
+- `supabase/migrations/` — SQL migrations that define the database schema and Row-Level Security (RLS) policies.
+- `scripts/` — Helpful local scripts (e.g. `scripts/test-supabase.js`).
 
-The app uses Supabase for backend services. Environment variables are pre-configured in `.env`:
-- `EXPO_PUBLIC_SUPABASE_URL`
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+File-by-file guide
 
-## Usage Guide
+- `app/index.tsx`
+   - Purpose: Authentication screen (sign in / sign up). Handles user sign-up and sign-in flows and decides navigation (onboarding vs tabs) after auth.
+   - Where to find: [app/index.tsx](app/index.tsx)
+   - Key functions: `handleAuth()` — calls `signUp`/`signIn` from the `AuthContext` and reads `supabase.auth.getUser()` to route the user.
 
-### First Time Setup
+- `app/onboarding.tsx`
+   - Purpose: User onboarding / complete profile flow. Collects personal info, goals, conditions, locations and writes multiple records into the DB.
+   - Where to find: [app/onboarding.tsx](app/onboarding.tsx)
+   - DB interactions: upserts `user_profiles`, inserts into `user_goals`, `user_medical_conditions`, `user_exercise_locations`, `workout_plans`, `diet_plans`, `sleep_schedules`, `daily_tasks`, and `weight_logs`.
+   - Important: Detailed logging was added here to capture Supabase responses for debugging.
 
-1. **Sign Up**: Create an account with email and password
-2. **Complete Onboarding**:
-   - Enter your age, height, current weight, and target weight
-   - Select your fitness goals
-   - Choose any medical conditions
-   - Pick your exercise locations
-3. **Review Your Plans**: Check the generated workouts and meal plans
-4. **Start Tracking**: Complete daily tasks and log your weight
+- `app/profile.tsx`
+   - Purpose: Edit user profile after onboarding. Loads profile and related rows (`user_goals`, `user_medical_conditions`, `user_exercise_locations`) and saves changes.
+   - Where to find: [app/profile.tsx](app/profile.tsx)
+   - DB interactions: `supabase.from('user_profiles').upsert(...)`, and inserts/deletes for related tables.
 
-### Daily Workflow
+- `app/(tabs)/index.tsx` (Dashboard)
+   - Purpose: Shows today’s tasks and high-level progress.
+   - Where to find: [app/(tabs)/index.tsx](app/(tabs)/index.tsx)
 
-1. **Check Dashboard**: View today's tasks and progress
-2. **Complete Tasks**: Mark off workouts, meals, and habits as you complete them
-3. **Review Plans**: Reference workout instructions and meal suggestions
-4. **Log Weight**: Update your weight regularly to track progress
-5. **Monitor Progress**: View graphs and statistics
+- `app/(tabs)/recommendations.tsx`
+   - Purpose: Shows generated workout and diet plans and explanations.
 
-### Updating Goals
+- `app/(tabs)/progress.tsx`
+   - Purpose: Weight logs, graph rendering, and stats.
+   - DB interactions: reads from `weight_logs`, `daily_tasks`, `user_profiles`.
 
-To change your fitness goals or update information:
-1. Complete current goals
-2. Sign out and sign in again
-3. Go through onboarding with new information
-4. New plans will be generated automatically
+- `app/_layout.tsx` and `app/(tabs)/_layout.tsx`
+   - Purpose: App layout and top-level providers (wrapping with `AuthProvider` and global styles). These files define tab navigation and shared UI chrome.
 
-## Key Features Explained
+- `contexts/AuthContext.tsx`
+   - Purpose: Central authentication state. Exposes `signUp`, `signIn`, `signOut`, `user`, and `session` via `useAuth()`.
+   - Where to find: [contexts/AuthContext.tsx](contexts/AuthContext.tsx)
+   - Notes: Manages `supabase.auth.onAuthStateChange` subscription and creates/updates `user_profiles` after signup using `upsert`.
 
-### Automatic Plan Generation
+- `lib/supabase.ts`
+   - Purpose: Primary Supabase client for native platforms. Initializes the `createClient(...)` with environment keys.
+   - Where to find: [lib/supabase.ts](lib/supabase.ts)
 
-The app uses a sophisticated fitness engine (`lib/fitnessEngine.ts`) that:
-- Calculates BMR and TDEE for calorie needs
-- Generates weekly workout schedules
-- Creates meal plans with proper macro distribution
-- Adjusts for medical conditions (e.g., asthma requires moderate intensity)
-- Combines multiple goals intelligently
+- `lib/supabase.web.ts`
+   - Purpose: Web-specific Supabase client. Initializes `createClient(...)` for web bundling.
+   - Where to find: [lib/supabase.web.ts](lib/supabase.web.ts)
 
-### Medical Condition Safety
+- `lib/fitnessEngine.ts`
+   - Purpose: Core algorithm that generates workouts, meal plans, sleep schedules, and daily tasks from a `profile` and selected goals/conditions.
+   - Where to find: [lib/fitnessEngine.ts](lib/fitnessEngine.ts)
+   - Key concepts: BMR/TDEE estimation, macro calculations, workout scheduling logic.
 
-When asthma is selected:
-- Workout intensity reduced to moderate
-- Extended warm-up and cool-down periods
-- Breathing exercises included
-- Longer rest intervals between sets
-- No high-intensity interval training
+- `metro.config.js`
+   - Purpose: Metro bundler configuration for Expo; excludes problematic custom resolution and sets resolver fields for web compatibility.
 
-### Multi-Goal Support
+- `package.json`
+   - Purpose: Contains `scripts` to run the app (`dev`, `build:web`, `lint`, `typecheck`) and lists dependencies.
 
-When both weight loss and muscle gain are selected:
-- Combines cardio and strength training
-- Maintains higher protein intake
-- Smaller calorie deficit to preserve muscle
-- Balanced workout schedule
+- `supabase/migrations/*.sql`
+   - Purpose: Database schema and RLS policies. Look in `supabase/migrations/20260110023246_create_fitness_app_schema.sql` for full table definitions and policies.
+   - Important: RLS policies require `auth.uid() = id` or `user_id` — this is why inserts must be made by an authenticated user whose `auth.uid()` matches the row fields.
 
-### Progress Visualization
+- `scripts/test-supabase.js`
+   - Purpose: Local script for quick Supabase connectivity checks (select/insert/delete tests). Useful to validate anon key and insert permissions.
 
-- Weight graph shows trend over time
-- Data points connected with lines
-- Y-axis scales automatically
-- X-axis shows date range
-- Visual feedback on weight changes
+Troubleshooting tips (common issues)
 
-## Mobile-First Design
+- Auth & RLS failures
+   - Symptom: Inserts return 400 or are ignored even though other rows exist.
+   - Cause: RLS policies require authenticated requests where `auth.uid()` equals the row `id` or `user_id`. Rows added via Supabase Studio or with the service role key bypass RLS and therefore may exist while client requests fail.
+   - Fix: Ensure `supabase.auth.getSession()` returns a valid session on the client and `supabase.auth.getUser()` matches the `user_id` used in inserts. Re-login if session is missing.
 
-The app features:
-- Clean, modern interface
-- Touch-friendly buttons and controls
-- Smooth scrolling and animations
-- Proper spacing and typography
-- Readable text on all screens
-- Intuitive navigation with bottom tabs
+- Non-UUID IDs
+   - Symptom: error 22P02 invalid input syntax for type uuid
+   - Cause: Tables use `uuid` primary keys. Using a non-UUID id (like `test_...`) will fail.
+   - Fix: Use `auth` user's uuid or let Postgres generate uuid using `gen_random_uuid()` when client-side id not required. The app uses `upsert` with `id: user.id` (uuid from Supabase) — keep that behavior.
 
-## Development
+Where to edit features
 
-### File Structure
+- Business logic (plans): edit `lib/fitnessEngine.ts`.
+- API/DB behavior: edit `lib/supabase.ts` or `supabase/migrations/*.sql` if schema/policies need changes.
+- Auth flows: edit `contexts/AuthContext.tsx` and `app/index.tsx`.
+- UI/screens: edit files in `app/` and `app/(tabs)/`.
 
-```
-app/
-├── (tabs)/           # Tab-based navigation
-│   ├── index.tsx     # Dashboard
-│   ├── recommendations.tsx  # Plans
-│   └── progress.tsx  # Progress tracking
-├── index.tsx         # Authentication
-├── onboarding.tsx    # Setup wizard
-└── _layout.tsx       # Root layout
-
-lib/
-├── supabase.ts       # Supabase client
-└── fitnessEngine.ts  # Plan generation logic
-
-contexts/
-└── AuthContext.tsx   # Authentication state
-
-components/
-└── (reusable components)
-```
-
-### Running Tests
+Developer commands
 
 ```bash
-npm run typecheck    # TypeScript validation
-npm run lint         # Linting
+npm install
+npm run dev        # start Expo dev server
+npm run typecheck  # run TS typecheck
+npm run lint       # lint code
 ```
 
-## Future Enhancements
+If you want to run targeted Supabase tests from the project root:
 
-Potential features for future versions:
-- Social features and community support
-- Exercise video demonstrations
-- Meal photo logging
-- Integration with fitness trackers
-- Custom exercise creation
-- Workout history and analytics
-- Recipe suggestions
-- Shopping list generation
-- Progress photos
-- Achievement badges
+```bash
+node scripts/test-supabase.js
+```
 
-## Support
+Notes about pushing changes
 
-For issues or questions:
-1. Check the research citations document
-2. Review the database schema
-3. Examine the fitness engine logic
-4. Check Supabase logs for backend issues
+- A Git remote was added and the workspace was pushed to `https://github.com/Nerov-Arch/lastapp.git` on branch `main`.
 
-## License
-
-This project is for educational purposes as part of an App Development course.
-
-## Credits
-
-Built with research from:
-- American College of Sports Medicine (ACSM)
-- International Society of Sports Nutrition (ISSN)
-- Centers for Disease Control (CDC)
-- National Sleep Foundation
-- American Lung Association
+If you want, I can:
+- Add inline comments to specific files explaining key functions.
+- Produce a shorter "developer quick reference" with only the most critical files and commands.
 
 ---
 
-**Version**: 1.0.0
-**Last Updated**: January 2026
+If you'd like me to expand any file's explanation with code snippets or walk through a specific flow (for example, the onboarding DB calls), tell me which file and I'll add a focused section.
+1. Install dependencies:

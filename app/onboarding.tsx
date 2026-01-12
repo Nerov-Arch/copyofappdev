@@ -100,34 +100,43 @@ export default function OnboardingScreen() {
         .from('user_profiles')
         .upsert({ id: user!.id, email: user!.email, ...profile });
       console.log('Onboarding profile upsert result:', profileResult);
-      if (profileResult.error) throw profileResult.error;
+      if (profileResult.error) {
+        try {
+          console.error('Profile upsert error details:', JSON.stringify(profileResult.error, Object.getOwnPropertyNames(profileResult.error), 2));
+        } catch (e) {
+          console.error('Profile upsert error:', profileResult.error);
+        }
+        throw profileResult.error;
+      }
 
       for (const goal of goals) {
-        const goalResult = await supabase.from('user_goals').insert({
-          user_id: user!.id,
-          goal_type: goal,
-          is_active: true,
-        });
-        console.log('Inserted goal result:', goalResult);
-        if (goalResult.error) throw goalResult.error;
+        const payload = { user_id: user!.id, goal_type: goal, is_active: true };
+        const goalResult = await supabase.from('user_goals').insert(payload);
+        console.log('Inserted goal payload:', payload, 'result:', goalResult);
+        if (goalResult.error) {
+          try { console.error('Goal insert error details:', JSON.stringify(goalResult.error, Object.getOwnPropertyNames(goalResult.error), 2)); } catch (e) { console.error('Goal insert error:', goalResult.error); }
+          throw goalResult.error;
+        }
       }
 
       for (const condition of conditions) {
-        const condResult = await supabase.from('user_medical_conditions').insert({
-          user_id: user!.id,
-          condition,
-        });
-        console.log('Inserted condition result:', condResult);
-        if (condResult.error) throw condResult.error;
+        const payload = { user_id: user!.id, condition };
+        const condResult = await supabase.from('user_medical_conditions').insert(payload);
+        console.log('Inserted condition payload:', payload, 'result:', condResult);
+        if (condResult.error) {
+          try { console.error('Condition insert error details:', JSON.stringify(condResult.error, Object.getOwnPropertyNames(condResult.error), 2)); } catch (e) { console.error('Condition insert error:', condResult.error); }
+          throw condResult.error;
+        }
       }
 
       for (const location of locations) {
-        const locResult = await supabase.from('user_exercise_locations').insert({
-          user_id: user!.id,
-          location,
-        });
-        console.log('Inserted location result:', locResult);
-        if (locResult.error) throw locResult.error;
+        const payload = { user_id: user!.id, location };
+        const locResult = await supabase.from('user_exercise_locations').insert(payload);
+        console.log('Inserted location payload:', payload, 'result:', locResult);
+        if (locResult.error) {
+          try { console.error('Location insert error details:', JSON.stringify(locResult.error, Object.getOwnPropertyNames(locResult.error), 2)); } catch (e) { console.error('Location insert error:', locResult.error); }
+          throw locResult.error;
+        }
       }
 
       const goalsData = goals.map((g) => ({ goal_type: g as any }));
@@ -142,45 +151,64 @@ export default function OnboardingScreen() {
       );
 
       for (const workout of workouts) {
-        await supabase.from('workout_plans').insert({
-          user_id: user!.id,
-          ...workout,
-        });
+        const payload = { user_id: user!.id, ...workout };
+        const wpRes = await supabase.from('workout_plans').insert(payload);
+        console.log('Inserted workout payload:', payload, 'result:', wpRes);
+        if (wpRes.error) {
+          try { console.error('Workout insert error details:', JSON.stringify(wpRes.error, Object.getOwnPropertyNames(wpRes.error), 2)); } catch (e) { console.error('Workout insert error:', wpRes.error); }
+          throw wpRes.error;
+        }
       }
 
       const meals = generateDietPlan(profile, goalsData);
 
       for (const meal of meals) {
-        await supabase.from('diet_plans').insert({
-          user_id: user!.id,
-          ...meal,
-        });
+        const payload = { user_id: user!.id, ...meal };
+        const mealRes = await supabase.from('diet_plans').insert(payload);
+        console.log('Inserted meal payload:', payload, 'result:', mealRes);
+        if (mealRes.error) {
+          try { console.error('Meal insert error details:', JSON.stringify(mealRes.error, Object.getOwnPropertyNames(mealRes.error), 2)); } catch (e) { console.error('Meal insert error:', mealRes.error); }
+          throw mealRes.error;
+        }
       }
 
       const sleep = generateSleepSchedule(goalsData);
-      await supabase.from('sleep_schedules').insert({
-        user_id: user!.id,
-        ...sleep,
-      });
+      const sleepRes = await supabase.from('sleep_schedules').insert({ user_id: user!.id, ...sleep });
+      console.log('Inserted sleep payload:', { user_id: user!.id, ...sleep }, 'result:', sleepRes);
+      if (sleepRes.error) {
+        try { console.error('Sleep insert error details:', JSON.stringify(sleepRes.error, Object.getOwnPropertyNames(sleepRes.error), 2)); } catch (e) { console.error('Sleep insert error:', sleepRes.error); }
+        throw sleepRes.error;
+      }
 
       const todayTasks = generateDailyTasks(workouts, meals, sleep);
       for (const task of todayTasks) {
-        await supabase.from('daily_tasks').insert({
-          user_id: user!.id,
-          ...task,
-        });
+        const payload = { user_id: user!.id, ...task };
+        const taskRes = await supabase.from('daily_tasks').insert(payload);
+        console.log('Inserted task payload:', payload, 'result:', taskRes);
+        if (taskRes.error) {
+          try { console.error('Task insert error details:', JSON.stringify(taskRes.error, Object.getOwnPropertyNames(taskRes.error), 2)); } catch (e) { console.error('Task insert error:', taskRes.error); }
+          throw taskRes.error;
+        }
       }
 
-      await supabase.from('weight_logs').insert({
-        user_id: user!.id,
-        weight: parseFloat(weight),
-        log_date: new Date().toISOString().split('T')[0],
-      });
+      const weightPayload = { user_id: user!.id, weight: parseFloat(weight), log_date: new Date().toISOString().split('T')[0] };
+      const weightRes = await supabase.from('weight_logs').insert(weightPayload);
+      console.log('Inserted weight payload:', weightPayload, 'result:', weightRes);
+      if (weightRes.error) {
+        try { console.error('Weight insert error details:', JSON.stringify(weightRes.error, Object.getOwnPropertyNames(weightRes.error), 2)); } catch (e) { console.error('Weight insert error:', weightRes.error); }
+        throw weightRes.error;
+      }
 
       router.replace('/(tabs)');
     } catch (error: any) {
-      console.error('Onboarding error:', error);
-      Alert.alert('Error', error.message || 'Failed to complete profile setup');
+      // Print full error object when available
+      try {
+        console.error('Onboarding error (full):', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+      } catch (e) {
+        console.error('Onboarding error (raw):', error);
+      }
+      const msg = error?.message || error?.msg || JSON.stringify(error);
+      Alert.alert('Error', msg || 'Failed to complete profile setup');
     } finally {
       setLoading(false);
     }
